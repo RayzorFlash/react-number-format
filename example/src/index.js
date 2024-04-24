@@ -210,11 +210,11 @@ class App extends React.Component {
         </div>
 
         <div className="example">
-          <h3>Decimal scale : Format currency in input with decimal scale</h3>
+          <h3>Fraction Digits: Format currency in input with fraction digit limits</h3>
           <NumericFormat
             thousandSeparator={true}
-            decimalScale={3}
-            fixedDecimalScale={true}
+            maximumFractionDigits={4}
+            minimumFractionDigits={2}
             prefix="$"
           />
         </div>
@@ -235,14 +235,14 @@ class App extends React.Component {
 
         <div className="example">
           <h3>Custom thousand separator with decimal precision</h3>
-          <div>ThousandSeparator: ',', decimalSeparator='.', decimalScale:2</div>
+          <div>ThousandSeparator: ',', decimalSeparator='.', maximumFractionDigits:2</div>
           <div>
-            <NumericFormat thousandSeparator="," decimalSeparator="." decimalScale={2} />
+            <NumericFormat thousandSeparator="," decimalSeparator="." maximumFractionDigits={2} />
           </div>
           <br />
-          <div>ThousandSeparator: '.', decimalSeparator=',', decimalScale:2</div>
+          <div>ThousandSeparator: '.', decimalSeparator=',', maximumFractionDigits:2</div>
           <div>
-            <NumericFormat thousandSeparator="." decimalSeparator="," decimalScale={2} />
+            <NumericFormat thousandSeparator="." decimalSeparator="," maximumFractionDigits={2} />
           </div>
         </div>
 

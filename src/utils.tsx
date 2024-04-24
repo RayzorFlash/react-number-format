@@ -1,9 +1,9 @@
 import { useMemo, useRef, useState } from 'react';
 import {
-  NumberFormatBaseProps,
   FormatInputValueFunction,
-  OnValueChange,
   IsCharacterSame,
+  NumberFormatBaseProps,
+  OnValueChange,
 } from './types';
 
 // basic noop function
@@ -120,14 +120,23 @@ export function fixLeadingZero(numStr?: string) {
   return `${isNegative ? '-' : ''}${beforeDecimal}${afterDecimal ? `.${afterDecimal}` : ''}`;
 }
 
-/**
- * limit decimal numbers to given scale
- * Not used .fixedTo because that will break with big numbers
- */
-export function limitToScale(numStr: string, scale: number, fixedDecimalScale: boolean) {
+export function limitFractionDigits(
+  numStr: string,
+  minimumFractionDigits?: number,
+  maximumFractionDigits?: number,
+) {
   let str = '';
-  const filler = fixedDecimalScale ? '0' : '';
-  for (let i = 0; i <= scale - 1; i++) {
+
+  const fractionDigits =
+    maximumFractionDigits === undefined
+      ? Math.max(minimumFractionDigits, numStr.length)
+      : maximumFractionDigits;
+
+  for (let i = 0; i <= fractionDigits - 1; i++) {
+    let filler = '';
+    if (i < minimumFractionDigits) {
+      filler = '0';
+    }
     str += numStr[i] || filler;
   }
   return str;
@@ -183,15 +192,22 @@ export function toNumericString(num: string | number) {
  * This method is required to round prop value to given scale.
  * Not used .round or .fixedTo because that will break with big numbers
  */
-export function roundToPrecision(numStr: string, scale: number, fixedDecimalScale: boolean) {
+export function roundToPrecision(
+  numStr: string,
+  minimumFractionDigits: number,
+  maximumFractionDigits: number,
+) {
   //if number is empty don't do anything return empty string
   if (['', '-'].indexOf(numStr) !== -1) return numStr;
 
-  const shouldHaveDecimalSeparator = (numStr.indexOf('.') !== -1 || fixedDecimalScale) && scale;
+  const shouldHaveDecimalSeparator =
+    (numStr.indexOf('.') !== -1 || minimumFractionDigits) && maximumFractionDigits;
   const { beforeDecimal, afterDecimal, hasNegation } = splitDecimal(numStr);
   const floatValue = parseFloat(`0.${afterDecimal || '0'}`);
   const floatValueStr =
-    afterDecimal.length <= scale ? `0.${afterDecimal}` : floatValue.toFixed(scale);
+    afterDecimal.length <= maximumFractionDigits
+      ? `0.${afterDecimal}`
+      : floatValue.toFixed(maximumFractionDigits);
   const roundedDecimalParts = floatValueStr.split('.');
   const intPart = beforeDecimal
     .split('')
@@ -206,7 +222,11 @@ export function roundToPrecision(numStr: string, scale: number, fixedDecimalScal
       return current + roundedStr;
     }, roundedDecimalParts[0]);
 
-  const decimalPart = limitToScale(roundedDecimalParts[1] || '', scale, fixedDecimalScale);
+  const decimalPart = limitFractionDigits(
+    roundedDecimalParts[1] || '',
+    minimumFractionDigits,
+    maximumFractionDigits,
+  );
   const negation = hasNegation ? '-' : '';
   const decimalSeparator = shouldHaveDecimalSeparator ? '.' : '';
   return `${negation}${intPart}${decimalSeparator}${decimalPart}`;

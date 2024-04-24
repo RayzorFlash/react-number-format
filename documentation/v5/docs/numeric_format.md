@@ -105,16 +105,18 @@ import { TextField } from '@mui/material';
    ></iframe>
 </details>
 
-### decimalScale `number`
+### minimumFractionDigits `number`
 
 **default**: `undefined`
 
-If defined, it limits the number of digits after the decimal point.
+If defined, it enforces a minimum number of digits after the decimal point.
+
+Note: If this value is greater than `maximumFractionDigits`, it will be ignored.
 
 ```js
 import { NumericFormat } from 'react-number-format';
 
-<NumericFormat value={12323.3334} decimalScale={3} />;
+<NumericFormat value={12323} minimumFractionDigits={2} />;
 ```
 
 <details>
@@ -122,9 +124,36 @@ import { NumericFormat } from 'react-number-format';
   Demo
   </summary>
 
-<iframe src="https://codesandbox.io/embed/decimalscale-demo-uc92li?fontsize=14&hidenavigation=1&theme=dark&view=preview"
+<iframe src="https://codesandbox.io/embed/fractiondigits-demo-uc92li?fontsize=14&hidenavigation=1&theme=dark&view=preview"
      className='csb'
-     title="decimalScale-demo"
+     title="fractiondigits-demo"
+     allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr; xr-spatial-tracking"
+     sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
+   ></iframe>
+</details>
+
+### maximumFractionDigits `number`
+
+**default**: `undefined`
+
+If defined, it enforces a maximum number of digits after the decimal point.
+
+Note: If this value is less than `minimumFractionDigits`, `minimumFractionDigits` will be ignored.
+
+```js
+import { NumericFormat } from 'react-number-format';
+
+<NumericFormat value={12323.3334} maximumFractionDigits={2} />;
+```
+
+<details>
+  <summary>
+  Demo
+  </summary>
+
+<iframe src="https://codesandbox.io/embed/fractiondigits-demo-uc92li?fontsize=14&hidenavigation=1&theme=dark&view=preview"
+     className='csb'
+     title="fractiondigits-demo"
      allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr; xr-spatial-tracking"
      sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
    ></iframe>
@@ -150,30 +179,6 @@ import { NumericFormat } from 'react-number-format';
    <iframe src="https://codesandbox.io/embed/decimalseparator-demo-tv9ptw?fontsize=14&hidenavigation=1&theme=dark&view=preview"
      className='csb'
      title="decimalSeparator-demo"
-     allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr; xr-spatial-tracking"
-     sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
-   ></iframe>
-</details>
-
-### fixedDecimalScale `boolean`
-
-**default**: `false`
-
-If set to `true`, it adds trailing 0s after `decimalSeparator` to match given `decimalScale`.
-
-```js
-import { NumericFormat } from 'react-number-format';
-
-<NumericFormat value={12323.1} decimalScale={3} fixedDecimalScale />;
-```
-
-<details>
-  <summary>
-  Demo
-  </summary>
-    <iframe src="https://codesandbox.io/embed/fixeddecimalscale-demo-3jnvz7?fontsize=14&hidenavigation=1&theme=dark&view=preview"
-     className='csb'
-     title="allowNegative-demo"
      allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr; xr-spatial-tracking"
      sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
    ></iframe>

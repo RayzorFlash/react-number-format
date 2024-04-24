@@ -104,8 +104,8 @@ export type NumericFormatProps<BaseType = InputAttributes> = NumberFormatProps<
     decimalSeparator?: string;
     allowedDecimalSeparators?: Array<string>;
     thousandsGroupStyle?: 'thousand' | 'lakh' | 'wan' | 'none';
-    decimalScale?: number;
-    fixedDecimalScale?: boolean;
+    minimumFractionDigits?: number;
+    maximumFractionDigits?: number;
     allowNegative?: boolean;
     allowLeadingZeros?: boolean;
     suffix?: string;

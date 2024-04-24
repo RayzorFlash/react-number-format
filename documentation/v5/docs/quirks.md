@@ -23,9 +23,9 @@ Its recommended to use formattedValue / value / floatValue based on the initial 
 
 1. Value can be passed as string or number, but if it is passed as string it should be either formatted value or if it is a numeric string and any of the format prop like prefix/suffix contains number, you have to set valueIsNumericString props to true.
 
-2. Value as prop will be rounded to given decimal scale if format option is not provided.
+2. Value as prop will be rounded to given maximumFractionDigits if format option is not provided.
 
-3. If you want to block floating number set decimalScale to 0.
+3. If you want to block floating number set maximumFractionDigits to 0.
 
 4. Use type as tel when you are providing format prop. This will change the mobile keyboard layout to have only numbers. In other case use type as text, so user can type decimal separator.
 

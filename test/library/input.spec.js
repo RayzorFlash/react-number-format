@@ -307,7 +307,7 @@ describe('NumberFormat as input', () => {
     const value = '12.000';
 
     const wrapper = mount(
-      <NumericFormat value={value} decimalScale={3} fixedDecimalScale={true} />,
+      <NumericFormat value={value} maximumFractionDigits={3} minimumFractionDigits={3} />,
     );
 
     simulateKeyInput(wrapper.find('input'), '9', 0, value.length);
@@ -335,13 +335,13 @@ describe('NumberFormat as input', () => {
 
   it('should not convert empty string to 0 if valueIsNumericString is true', () => {
     const wrapper = mount(
-      <NumericFormat valueIsNumericString={true} value={''} decimalScale={2} />,
+      <NumericFormat valueIsNumericString={true} value={''} maximumFractionDigits={2} />,
     );
     expect(getInputValue(wrapper)).toEqual('');
   });
 
   it('should not break if null or NaN is provided as value', () => {
-    const wrapper = mount(<NumericFormat value={null} decimalScale={2} />);
+    const wrapper = mount(<NumericFormat value={null} maximumFractionDigits={2} />);
     expect(getInputValue(wrapper)).toEqual('');
 
     wrapper.setProps({ value: NaN });
@@ -693,7 +693,7 @@ describe('NumberFormat as input', () => {
     });
 
     // Test case for Issue #533
-    it('should show the right decimal values based on the decimal scale provided', () => {
+    it('should show the right decimal values based on the fraction digit limits provided', () => {
       class WrapperComponent extends React.Component {
         constructor() {
           super();
@@ -713,7 +713,7 @@ describe('NumberFormat as input', () => {
               id="formatted-numberformat-input"
               value={this.state.value}
               onValueChange={this.onInputChange}
-              decimalScale={18}
+              maximumFractionDigits={18}
               thousandSeparator
               prefix={'$'}
               valueIsNumericString
@@ -744,7 +744,7 @@ describe('NumberFormat as input', () => {
               value={this.state.value}
               thousandSeparator
               prefix="$"
-              decimalScale={2}
+              maximumFractionDigits={2}
               valueIsNumericString
             />
           );

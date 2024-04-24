@@ -1,22 +1,22 @@
-import React, { useEffect, useState, useRef, useLayoutEffect } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
   FormatInputValueFunction,
-  NumberFormatBaseProps,
   InputAttributes,
+  NumberFormatBaseProps,
   SourceType,
   Timeout,
 } from './types';
 import {
   addInputMode,
+  caretUnknownFormatBoundary,
+  charIsNumber,
   findChangeRange,
   geInputCaretPosition,
-  setCaretPosition,
-  getCaretPosition,
-  charIsNumber,
-  useInternalValues,
-  noop,
-  caretUnknownFormatBoundary,
   getCaretPosInBoundary,
+  getCaretPosition,
+  noop,
+  setCaretPosition,
+  useInternalValues,
 } from './utils';
 
 function defaultRemoveFormatting(value: string) {

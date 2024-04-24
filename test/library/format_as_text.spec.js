@@ -57,8 +57,10 @@ describe('NumberFormat as text', () => {
     expect(wrapper.find('span').text()).toEqual('4111 1111 1111 11__');
   });
 
-  it('should limit decimal scale to given value', () => {
-    const wrapper = mount(<NumericFormat value={4111.344} displayType={'text'} decimalScale={2} />);
+  it('should limit fraction digits to given value', () => {
+    const wrapper = mount(
+      <NumericFormat value={4111.344} displayType={'text'} maximumFractionDigits={2} />,
+    );
     expect(wrapper.find('span').text()).toEqual('4111.34');
 
     wrapper.setProps({
@@ -69,20 +71,19 @@ describe('NumberFormat as text', () => {
     expect(wrapper.find('span').text()).toEqual('4111.36');
   });
 
-  it('should add zeros if fixedDecimalScale is provided', () => {
+  it('should add zeros if minimumFractionDigits is provided', () => {
     const wrapper = mount(
       <NumericFormat
         value="4111.11"
         valueIsNumericString
         displayType={'text'}
-        decimalScale={4}
-        fixedDecimalScale={true}
+        minimumFractionDigits={4}
       />,
     );
     expect(wrapper.find('span').text()).toEqual('4111.1100');
 
     wrapper.setProps({
-      decimalScale: 1,
+      maximumFractionDigits: 1,
     });
 
     wrapper.update();

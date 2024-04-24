@@ -132,8 +132,10 @@ export function simulateNativeKeyInput(input, key, selectionStart = 0, selection
 }
 
 export function simulatePaste(input, test, selectionStart = 0, selectionEnd = 0) {
-  input.setSelectionRange(selectionStart, selectionEnd);
-  userEvent.paste(input, test);
+  userEvent.paste(input, test, undefined, {
+    initialSelectionStart: selectionStart,
+    initialSelectionEnd: selectionEnd,
+  });
 }
 
 export function simulateNativeMouseUpEvent(input, selectionStart) {

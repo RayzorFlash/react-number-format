@@ -12,6 +12,7 @@ import {
   getInputValue,
   render,
   simulateNativeKeyInput,
+  simulatePaste,
 } from '../test_util';
 
 /**
@@ -27,12 +28,14 @@ describe('Test NumberFormat as input with numeric format options', () => {
     expect(getInputValue(wrapper)).toEqual('$0');
   });
 
-  it('should show the initial value as empty string when empty string is passed and decimalScale is set', () => {
-    const wrapper = mount(<NumericFormat value="" thousandSeparator={true} decimalScale={2} />);
+  it('should show the initial value as empty string when empty string is passed even if minimumFractionDigits is set', () => {
+    const wrapper = mount(
+      <NumericFormat value="" thousandSeparator={true} minimumFractionDigits={2} />,
+    );
     expect(getInputValue(wrapper)).toEqual('');
   });
 
-  it('should show the initial value as empty string when empty string is passed and decimalScale is not set', () => {
+  it('should show the initial value as empty string when empty string is passed', () => {
     const wrapper = mount(<NumericFormat value="" thousandSeparator={true} />);
     expect(getInputValue(wrapper)).toEqual('');
   });
@@ -141,7 +144,7 @@ describe('Test NumberFormat as input with numeric format options', () => {
     wrapper.setProps({
       thousandSeparator: '.',
       decimalSeparator: ',',
-      decimalScale: 0,
+      maximumFractionDigits: 0,
     });
     expect(getInputValue(wrapper)).toEqual('12.346');
   });
@@ -159,7 +162,7 @@ describe('Test NumberFormat as input with numeric format options', () => {
     wrapper.setProps({
       thousandSeparator: '.',
       decimalSeparator: ',',
-      decimalScale: 0,
+      maximumFractionDigits: 0,
     });
     expect(getInputValue(wrapper)).toEqual('12.346');
   });
@@ -174,9 +177,9 @@ describe('Test NumberFormat as input with numeric format options', () => {
     expect(getInputValue(wrapper)).toEqual('981.273.724.234.817.383.478,127');
   });
 
-  it('should support decimal scale with custom decimal separator', () => {
+  it('should support fraction digits with custom decimal separator', () => {
     const wrapper = mount(
-      <NumericFormat thousandSeparator={'.'} decimalSeparator={','} decimalScale={2} />,
+      <NumericFormat thousandSeparator={'.'} decimalSeparator={','} minimumFractionDigits={2} />,
     );
     const input = wrapper.find('input');
 
@@ -184,8 +187,8 @@ describe('Test NumberFormat as input with numeric format options', () => {
     expect(getInputValue(wrapper)).toEqual('2.456.981,89');
   });
 
-  it('should limit to passed decimal scale', () => {
-    const wrapper = mount(<NumericFormat decimalScale={4} fixedDecimalScale={true} />);
+  it('should limit to passed fraction digits', () => {
+    const wrapper = mount(<NumericFormat minimumFractionDigits={4} maximumFractionDigits={4} />);
     const input = wrapper.find('input');
 
     //case 1st - already exactly scale 4 should stay that way
@@ -210,30 +213,61 @@ describe('Test NumberFormat as input with numeric format options', () => {
     expect(getInputValue(wrapper)).toEqual('4111.0000');
 
     //case 5 - round with two decimal scale
-    wrapper.setProps({ decimalScale: 2 });
+    wrapper.setProps({ maximumFractionDigits: 2 });
     input.simulate('change', getCustomEvent('4111.111'));
     expect(getInputValue(wrapper)).toEqual('4111.11');
   });
 
-  it('should not add zeros to fixedDecimalScale is not set', () => {
-    const wrapper = mount(<NumericFormat decimalScale={4} value={24.45} />);
-    expect(getInputValue(wrapper)).toEqual('24.45');
+  it('should enforce minimum fraction digits if specified', () => {
+    const wrapper = mount(<NumericFormat minimumFractionDigits={2} value={24} />);
+    expect(getInputValue(wrapper)).toEqual('24.00');
 
-    wrapper.setProps({
-      value: 24.45678,
-    });
-    wrapper.update();
-    expect(getInputValue(wrapper)).toEqual('24.4568');
+    const input = wrapper.find('input');
+    input.simulate('change', getCustomEvent('24.1234'));
+    expect(getInputValue(wrapper)).toEqual('24.1234');
   });
 
-  it('should handle fixedDecimalScale correctly #670', () => {
+  it('should enforce maximum fraction digits if specified', () => {
+    const wrapper = mount(<NumericFormat maximumFractionDigits={4} value={24} />);
+    expect(getInputValue(wrapper)).toEqual('24');
+
+    const input = wrapper.find('input');
+    input.simulate('change', getCustomEvent('24.1234'));
+    expect(getInputValue(wrapper)).toEqual('24.1234');
+
+    input.simulate('change', getCustomEvent('24.123456789'));
+    expect(getInputValue(wrapper)).toEqual('24.1234');
+  });
+
+  it('should enforce minimum and maximum fraction digits if both specified', () => {
     const wrapper = mount(
-      <NumericFormat thousandSeparator value={12} decimalScale={2} fixedDecimalScale />,
+      <NumericFormat minimumFractionDigits={2} maximumFractionDigits={4} value={24} />,
     );
-    expect(getInputValue(wrapper)).toEqual('12.00');
+    expect(getInputValue(wrapper)).toEqual('24.00');
+
+    const input = wrapper.find('input');
+    input.simulate('change', getCustomEvent('24.12345678'));
+    expect(getInputValue(wrapper)).toEqual('24.1234');
   });
 
-  it('should not round the initial if decimalScale is not provided', () => {
+  it('should gracefully handle maximum fraction digits being smaller than minimum fraction digits', () => {
+    const wrapper = mount(
+      <NumericFormat minimumFractionDigits={4} maximumFractionDigits={2} value={24.12345} />,
+    );
+    expect(getInputValue(wrapper)).toEqual('24.12');
+  });
+
+  it('should handle maximum fraction digits being set to 0', () => {
+    const wrapper = mount(<NumericFormat maximumFractionDigits={0} value={24.12345} />);
+    expect(getInputValue(wrapper)).toEqual('24');
+  });
+
+  it('should handle minimum fraction digits being set to 0', () => {
+    const wrapper = mount(<NumericFormat minimumFractionDigits={0} value={24.12345} />);
+    expect(getInputValue(wrapper)).toEqual('24.12345');
+  });
+
+  it('should not round the initial if fraction digits are not provided', () => {
     const wrapper = mount(<NumericFormat value={123213.7535} />);
     expect(getInputValue(wrapper)).toEqual('123213.7535');
 
@@ -260,9 +294,9 @@ describe('Test NumberFormat as input with numeric format options', () => {
     expect(getInputValue(wrapper)).toEqual('56.790,876');
   });
 
-  it('should round the initial value to given decimalScale', () => {
+  it('should round the initial value to given fraction digits', () => {
     const wrapper = mount(
-      <NumericFormat value={123213.7536} valueIsNumericString={true} decimalScale={1} />,
+      <NumericFormat value={123213.7536} valueIsNumericString={true} maximumFractionDigits={1} />,
     );
     expect(getInputValue(wrapper)).toEqual('123213.8');
 
@@ -274,19 +308,19 @@ describe('Test NumberFormat as input with numeric format options', () => {
     wrapper.setProps({
       thousandSeparator: '.',
       decimalSeparator: ',',
-      decimalScale: 3,
+      maximumFractionDigits: 3,
     });
 
     expect(getInputValue(wrapper)).toEqual('123.213,754');
 
     wrapper.setProps({
       value: 36790.876,
-      decimalScale: 0,
+      maximumFractionDigits: 0,
     });
 
     expect(getInputValue(wrapper)).toEqual('36.791');
     wrapper.setProps({
-      decimalScale: 2,
+      maximumFractionDigits: 2,
     });
 
     expect(getInputValue(wrapper)).toEqual('36.790,88');
@@ -303,12 +337,10 @@ describe('Test NumberFormat as input with numeric format options', () => {
     expect(getInputValue(wrapper)).toEqual('981.273.724.234.817.383.478.127,68');
   });
 
-  it('should allow deleting all numbers when decimalScale and fixedDecimalScale is defined', () => {
+  it('should allow deleting all numbers when minimumFractionDigits is defined', () => {
     jasmine.clock().install();
 
-    const wrapper = mount(
-      <NumericFormat prefix="$" decimalScale={3} value="$1.000" fixedDecimalScale={true} />,
-    );
+    const wrapper = mount(<NumericFormat prefix="$" minimumFractionDigits={3} value="$1.000" />);
     simulateKeyInput(wrapper.find('input'), 'Backspace', 2);
 
     jasmine.clock().tick(1);
@@ -316,33 +348,31 @@ describe('Test NumberFormat as input with numeric format options', () => {
     expect(getInputValue(wrapper)).toEqual('');
   });
 
-  it('should not allow to remove decimalSeparator if decimalScale and fixedDecimalScale is defined', () => {
+  it('should not allow to remove decimalSeparator if minimumFractionDigits is defined', () => {
     const wrapper = mount(
       <NumericFormat
         prefix="$"
         thousandSeparator={true}
-        decimalScale={3}
-        fixedDecimalScale={true}
+        minimumFractionDigits={3}
         value="$1,234.000"
       />,
     );
     simulateKeyInput(wrapper.find('input'), 'Backspace', 7);
     expect(getInputValue(wrapper)).toEqual('$1,234.000');
 
-    wrapper.setProps({ decimalScale: undefined });
+    wrapper.setProps({ minimumFractionDigits: undefined });
     wrapper.update();
     simulateKeyInput(wrapper.find('input'), 'Backspace', 7);
     expect(getInputValue(wrapper)).toEqual('$1,234,000');
   });
 
   it(`should allow replacing all digits (without prefix and/or suffix) with input
-    digit(s) when decimalScale and fixedDecimalScale is defined. Issue #159`, () => {
+    digit(s) when minimumFractionDigits is defined. Issue #159`, () => {
     const wrapper = mount(
       <NumericFormat
         prefix="$"
         thousandSeparator={true}
-        decimalScale={2}
-        fixedDecimalScale={true}
+        minimumFractionDigits={2}
         value="$1,234.00"
       />,
     );
@@ -377,8 +407,8 @@ describe('Test NumberFormat as input with numeric format options', () => {
     expect(getInputValue(wrapper)).toEqual('4111.1');
   });
 
-  it('sould not allow decimal numbers if decimal scale is set to 0', () => {
-    const wrapper = mount(<NumericFormat thousandSeparator={true} decimalScale={0} />);
+  it('should not allow decimal numbers if maximumFractionDigits is set to 0', () => {
+    const wrapper = mount(<NumericFormat thousandSeparator={true} maximumFractionDigits={0} />);
     const input = wrapper.find('input');
 
     //case 1 - decimal scale set to 0
@@ -480,7 +510,7 @@ describe('Test NumberFormat as input with numeric format options', () => {
   });
 
   it('should make input empty when there is only non numeric values (ie just -) on blur', () => {
-    const wrapper = mount(<NumericFormat decimalScale={2} />);
+    const wrapper = mount(<NumericFormat maximumFractionDigits={2} />);
     simulateKeyInput(wrapper.find('input'), '-', 0);
     simulateBlurEvent(wrapper.find('input'));
 
@@ -542,7 +572,7 @@ describe('Test NumberFormat as input with numeric format options', () => {
   });
 
   //Issue #137 valueIsNumericString=true breaks decimal places
-  it('should not break decimal palces when valueIsNumericString is set to true and decimal scale is provided. Issue #137', () => {
+  it('should not break decimal palces when valueIsNumericString is set to true and maximumFractionDigits is provided. Issue #137', () => {
     class IssueExample extends React.Component {
       constructor() {
         super();
@@ -555,7 +585,7 @@ describe('Test NumberFormat as input with numeric format options', () => {
         return (
           <NumericFormat
             valueIsNumericString={true}
-            decimalScale={2}
+            maximumFractionDigits={2}
             prefix={'$'}
             value={value}
             onValueChange={({ value }) => {
@@ -572,8 +602,8 @@ describe('Test NumberFormat as input with numeric format options', () => {
   });
 
   //Issue #140
-  it('should not give NaN zeros, when decimalScale is 0 and roundedValue will be multiple of 10s, Issue #140', () => {
-    const wrapper = mount(<NumericFormat value={-9.5} decimalScale={0} />);
+  it('should not give NaN zeros, when maximumFractionDigits is 0 and roundedValue will be multiple of 10s, Issue #140', () => {
+    const wrapper = mount(<NumericFormat value={-9.5} maximumFractionDigits={0} />);
     expect(getInputValue(wrapper)).toEqual('-10');
 
     wrapper.setProps({ value: -99.5 });
@@ -581,14 +611,14 @@ describe('Test NumberFormat as input with numeric format options', () => {
   });
 
   //Issue #145
-  it('should give correct formatted value when pasting a number with decimal and decimal scale is set to zero, issue #145', () => {
-    const wrapper = mount(<NumericFormat decimalScale={0} />);
-    simulateKeyInput(wrapper.find('input'), '9.55');
-    expect(getInputValue(wrapper)).toEqual('9');
+  it('should give correct formatted value when pasting a number with decimal and maximumFractionDigits is set to zero, issue #145', async () => {
+    const { input } = await render(<NumericFormat maximumFractionDigits={0} />);
+    simulatePaste(input, '9.55');
+    expect(input.value).toEqual('9');
   });
 
-  it('should format the number correctly when thousandSeparator is true and decimal scale is 0. Issue #178', () => {
-    const wrapper = mount(<NumericFormat decimalScale={0} thousandSeparator={true} />);
+  it('should format the number correctly when thousandSeparator is true and maximumFractionDigits is 0. Issue #178', () => {
+    const wrapper = mount(<NumericFormat maximumFractionDigits={0} thousandSeparator={true} />);
     simulateKeyInput(wrapper.find('input'), '10000');
     expect(getInputValue(wrapper)).toEqual('10,000');
     simulateKeyInput(wrapper.find('input'), '0', 6);
@@ -596,16 +626,16 @@ describe('Test NumberFormat as input with numeric format options', () => {
   });
 
   it(`should give correct formatted value when decimal value is passed as prop and
-    decimal scale is set to zero and fixedDecimalScale is true, issue #183`, () => {
+    maximumFractionDigits and minimumFractionDigits is zero, issue #183`, () => {
     const wrapper = mount(
-      <NumericFormat decimalScale={0} fixedDecimalScale={true} value={1.333333333} />,
+      <NumericFormat maximumFractionDigits={0} minimumFractionDigits={0} value={1.333333333} />,
     );
     expect(getInputValue(wrapper)).toEqual('1');
   });
 
   it(`should not add 0 after minus immediately after minus is entered in case valueIsNumericString and
-    decimalScale props are passed #198`, () => {
-    const wrapper = mount(<NumericFormat valueIsNumericString decimalScale={2} />);
+    fractionDigits props are passed #198`, () => {
+    const wrapper = mount(<NumericFormat valueIsNumericString maximumFractionDigits={2} />);
     simulateKeyInput(wrapper.find('input'), '-', 0, 0);
     expect(getInputValue(wrapper)).toEqual('-');
   });
@@ -655,8 +685,10 @@ describe('Test NumberFormat as input with numeric format options', () => {
   });
 
   //Issue #375
-  it('should give correct formatted value when pasting the dot symbol with decimal scale is set to zero, issue #375', () => {
-    const wrapper = mount(<NumericFormat value={4200} thousandSeparator={true} decimalScale={0} />);
+  it('should give correct formatted value when pasting the dot symbol with maximumFractionDigits is set to zero, issue #375', () => {
+    const wrapper = mount(
+      <NumericFormat value={4200} thousandSeparator={true} maximumFractionDigits={0} />,
+    );
     simulateKeyInput(wrapper.find('input'), '.', 2, 2);
     expect(getInputValue(wrapper)).toEqual('4,200');
   });
@@ -672,7 +704,7 @@ describe('Test NumberFormat as input with numeric format options', () => {
             setValue(values.value);
           }}
           valueIsNumericString
-          decimalScale={8}
+          maximumFractionDigits={8}
         />
       );
     }
@@ -694,7 +726,7 @@ describe('Test NumberFormat as input with numeric format options', () => {
     expect(input.value).toEqual('12,345');
   });
 
-  it('should not infinite rerender when valueIsNumericString is not set and decimalScale is provided, and values.value is used inside onValueChange #786', async () => {
+  it('should not infinite rerender when valueIsNumericString is not set and maximumFractionDigits is provided, and values.value is used inside onValueChange #786', async () => {
     const ControlledComponent = (props) => {
       const [value, setValue] = useState('');
       const [renderCount, setRenderCount] = useState(0);
@@ -719,8 +751,8 @@ describe('Test NumberFormat as input with numeric format options', () => {
       <ControlledComponent
         thousandSeparator={false}
         decimalSeparator=","
-        decimalScale={2}
-        fixedDecimalScale
+        maximumFractionDigits={2}
+        minimumFractionDigits={2}
       />,
     );
 
@@ -731,9 +763,9 @@ describe('Test NumberFormat as input with numeric format options', () => {
     expect(input.value).toEqual('2,00');
   });
 
-  it('should not delete decimal separator if delete key is pressed before decimal separator when fixedDecimalScale is provided. #789', async () => {
+  it('should not delete decimal separator if delete key is pressed before decimal separator when fraction digit limits are provided. #789', async () => {
     const { input } = await render(
-      <NumericFormat value={'123.000'} decimalScale={3} fixedDecimalScale />,
+      <NumericFormat value={'123.000'} maximumFractionDigits={3} minimumFractionDigits={3} />,
     );
 
     simulateNativeKeyInput(input, '{delete}', 3, 3);

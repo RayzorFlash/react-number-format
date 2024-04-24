@@ -92,8 +92,8 @@ describe('Test keypress and caret position changes', () => {
         allowedDecimalSeparators={[',', '.']}
         decimalSeparator=","
         thousandSeparator="."
-        decimalScale={3}
-        fixedDecimalScale
+        maximumFractionDigits={3}
+        minimumFractionDigits={3}
       />,
     );
 
@@ -110,9 +110,9 @@ describe('Test keypress and caret position changes', () => {
       return (
         <NumericFormat
           thousandSeparator=" "
-          decimalScale={2}
+          maximumFractionDigits={2}
+          minimumFractionDigits={2}
           placeholder="0,00"
-          fixedDecimalScale
           thousandsGroupStyle="thousand"
           decimalSeparator=","
           value={val}
@@ -136,7 +136,7 @@ describe('Test keypress and caret position changes', () => {
         value={2}
         decimalSeparator=","
         thousandSeparator="."
-        decimalScale={2}
+        maximumFractionDigits={2}
         prefix="$"
         suffix=" €"
       />,
@@ -152,7 +152,7 @@ describe('Test keypress and caret position changes', () => {
         value={''}
         decimalSeparator=","
         allowedDecimalSeparators={['%', '.']}
-        decimalScale={2}
+        maximumFractionDigits={2}
         suffix=" €"
       />,
     );
@@ -269,7 +269,7 @@ describe('Test keypress and caret position changes', () => {
           type="text"
           allowNegative={false}
           valueIsNumericString={true}
-          decimalScale={8}
+          maximumFractionDigits={8}
           placeholder="Enter Amount"
           defaultValue="123"
           suffix=" USD"
